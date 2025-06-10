@@ -5,8 +5,20 @@ name = "pypi"
 
 [packages]
 requests = "*"
+django = "*"
+djangorestframework = "*"
+psycopg2-binary = "*"
+pytest = "*"
+pytest-django = "*"
+coverage = "*"
 
 [dev-packages]
+black = "*"
+isort = "*"
+flake8 = "*"
+pytest = "*"
+pytest-django = "*"
+coverage = "*"
 
 [requires]
 python_version = "3.11"
