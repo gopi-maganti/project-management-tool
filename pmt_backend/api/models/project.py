@@ -1,9 +1,5 @@
 from django.db import models
-from django.contrib.auth import get_user_model
-
 from api.constants.constants import ROLE_CHOICES
-
-User = get_user_model()
 
 
 class Project(models.Model):
@@ -12,9 +8,7 @@ class Project(models.Model):
     """
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
-    created_by = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="created_projects"
-    )
+    created_by = models.ForeignKey('api.UserData', on_delete=models.CASCADE, related_name="created_projects")
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self) -> str:
@@ -25,7 +19,7 @@ class ProjectMember(models.Model):
     """
     Represents a user associated with a project along with their role (e.g., admin, developer).
     """
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey('api.UserData', on_delete=models.CASCADE)
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="members")
     role = models.CharField(max_length=20, choices=ROLE_CHOICES)
 
