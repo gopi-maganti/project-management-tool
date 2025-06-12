@@ -2,7 +2,7 @@ name: Django CI Workflow
 
 on:
   push:
-    branches: [ '**' ]
+    branches: [ main ]
 
 jobs:
   ci:
@@ -11,7 +11,7 @@ jobs:
 
     services:
       postgres:
-        image: postgres:13
+        image: postgres:14
         env:
           POSTGRES_USER: ${{ secrets.DB_USER }}
           POSTGRES_PASSWORD: ${{ secrets.DB_PASSWORD }}
