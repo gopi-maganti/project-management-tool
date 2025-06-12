@@ -1,12 +1,15 @@
-name: Django CI Workflow
+name: Django Tests
 
 on:
-  push:
-    branches: [ '**' ]
+  workflow_run:
+    workflows: ["Django CI"]
+    types:
+      - completed
 
 jobs:
-  ci:
-    name: 🔧 Install & Migrate (CI)
+  test:
+    name: 🧪 Django Test Job
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
 
     services:
@@ -30,20 +33,12 @@ jobs:
       DB_HOST: ${{ secrets.DB_HOST }}
 
     steps:
-      - name: 📥 Checkout code
-        uses: actions/checkout@v3
-
-      - name: 🐍 Set up Python
-        uses: actions/setup-python@v4
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
         with:
           python-version: '3.11'
-
-      - name: 📦 Install dependencies
-        run: |
-          pip install --upgrade pip
+      - run: |
           pip install -r pmt_backend/requirements/base.txt
-
-      - name: 🔄 Run Migrations
-        run: |
+      - run: |
           cd pmt_backend
-          python manage.py migrate
+          python manage.py test
