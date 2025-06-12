@@ -1,7 +1,8 @@
-from django.contrib.auth.models import AbstractUser
-from django.core.validators import RegexValidator
 from django.db import models
 from django.utils import timezone
+
+from django.contrib.auth.models import AbstractUser, Group, Permission
+from django.core.validators import RegexValidator
 
 
 class UserData(AbstractUser):
@@ -47,13 +48,13 @@ class UserData(AbstractUser):
 
     # Prevent related_name conflicts with default groups and permissions
     groups = models.ManyToManyField(
-        "auth.Group",
+        Group,
         related_name="custom_user_groups",
         blank=True,
         verbose_name="groups",
     )
     user_permissions = models.ManyToManyField(
-        "auth.Permission",
+        Permission,
         related_name="custom_user_permissions",
         blank=True,
         verbose_name="user permissions",
