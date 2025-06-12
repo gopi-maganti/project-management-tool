@@ -1,5 +1,5 @@
-from django.db import models
 from api.models.issue import Issue
+from django.db import models
 
 
 class IssueAuditLog(models.Model):

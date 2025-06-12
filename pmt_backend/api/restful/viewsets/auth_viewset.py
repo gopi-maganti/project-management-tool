@@ -1,11 +1,39 @@
-# viewsets/user_viewset.py
+from rest_framework import viewsets
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework.permissions import AllowAny
+from rest_framework.authtoken.models import Token
 
-from rest_framework import viewsets, permissions
-from api.models import UserData
 from api.restful.serializers.user_serializer import UserRegisterSerializer
+from api.restful.serializers.auth_serializer import UserLoginSerializer
+from dj_rest_auth.registration.views import SocialLoginView
+from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
+from allauth.socialaccount.providers.facebook.views import FacebookOAuth2Adapter
 
 
-class UserViewSet(viewsets.ModelViewSet):
-    queryset = UserData.objects.all()
-    serializer_class = UserRegisterSerializer
-    permission_classes = [permissions.IsAuthenticated]
+class AuthViewSet(viewsets.ViewSet):
+    permission_classes = [AllowAny]
+
+    @action(detail=False, methods=['post'], url_path='register')
+    def register(self, request):
+        serializer = UserRegisterSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.save()
+            token, _ = Token.objects.get_or_create(user=user)
+            return Response({'message': 'User registered successfully', 'token': token.key}, status=201)
+        return Response(serializer.errors, status=400)
+
+    @action(detail=False, methods=['post'], url_path='login')
+    def login(self, request):
+        serializer = UserLoginSerializer(data=request.data)
+        if serializer.is_valid():
+            return Response(serializer.validated_data, status=200)
+        return Response(serializer.errors, status=400)
+
+
+class GoogleLogin(SocialLoginView):
+    adapter_class = GoogleOAuth2Adapter
+
+
+class FacebookLogin(SocialLoginView):
+    adapter_class = FacebookOAuth2Adapter

@@ -1,5 +1,5 @@
-from django.db import models
 from api.constants.constants import ROLE_CHOICES
+from django.db import models
 
 
 class Project(models.Model):

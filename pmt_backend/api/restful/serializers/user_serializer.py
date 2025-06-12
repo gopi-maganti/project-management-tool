@@ -1,5 +1,6 @@
-from rest_framework import serializers
 from api.models import UserData
+from rest_framework import serializers
+
 
 class UserRegisterSerializer(serializers.ModelSerializer):
     class Meta:
