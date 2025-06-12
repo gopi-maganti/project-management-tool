@@ -1,3 +1,2 @@
-from .auth_viewset import AuthViewSet
-from .auth_viewset import GoogleLogin
+from .auth_viewset import AuthViewSet, GoogleLogin
 from .user_viewset import UserViewSet

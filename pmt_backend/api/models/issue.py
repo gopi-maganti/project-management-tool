@@ -1,6 +1,7 @@
-from django.db import models
+from api.constants.constants import (ISSUE_TYPES, PRIORITY_CHOICES,
+                                     STATUS_CHOICES)
 from api.models.project import Project
-from api.constants.constants import ISSUE_TYPES, STATUS_CHOICES, PRIORITY_CHOICES
+from django.db import models
 
 
 class Issue(models.Model):

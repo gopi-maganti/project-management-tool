@@ -1,6 +1,7 @@
 import functools
-import jwt
 import json
+
+import jwt
 import requests
 from jwt.algorithms import RSAAlgorithm
 from rest_framework.response import Response
