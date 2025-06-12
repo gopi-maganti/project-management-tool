@@ -1,15 +1,15 @@
-from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
-from dj_rest_auth.registration.views import SocialLoginView
+from api.restful.serializers.auth_serializer import LoginTypeSerializer
 from django.contrib.auth import authenticate
-from drf_yasg import openapi
-from drf_yasg.utils import swagger_auto_schema
-from rest_framework import status, viewsets
+from rest_framework import viewsets, status
 from rest_framework.authtoken.models import Token
+from dj_rest_auth.registration.views import SocialLoginView
+from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
+from allauth.socialaccount.providers.facebook.views import FacebookOAuth2Adapter
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
 from rest_framework.decorators import action
 from rest_framework.response import Response
-
-from api.restful.serializers.auth_serializer import LoginTypeSerializer
-
+from typing import cast, Dict
 
 class AuthViewSet(viewsets.ViewSet):
 
@@ -22,11 +22,11 @@ class AuthViewSet(viewsets.ViewSet):
     @action(detail=False, methods=['post'], url_path='login')
     def login(self, request):
         serializer = LoginTypeSerializer(data=request.data)
-        is_valid = serializer.is_valid()
-        if not is_valid:
+        if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        data = serializer.validated_data
+        # Cast validated_data to help Pylance infer correct type
+        data = cast(Dict[str, str], serializer.validated_data)
         login_type = data['login_type']
 
         if login_type == 'username_password':
@@ -51,6 +51,8 @@ class AuthViewSet(viewsets.ViewSet):
 
         return Response({"detail": "Unsupported login type"}, status=status.HTTP_400_BAD_REQUEST)
 
-
 class GoogleLogin(SocialLoginView):
     adapter_class = GoogleOAuth2Adapter
+
+class FacebookLogin(SocialLoginView):
+    adapter_class = FacebookOAuth2Adapter
