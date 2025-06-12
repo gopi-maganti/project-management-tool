@@ -1,0 +1,86 @@
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Django specific
+*.log
+*.pot
+*.pyc
+*.pyo
+*.db
+*.sqlite3
+*.sqlite3-journal
+
+# Django migrations
+*/migrations/__pycache__/
+*/migrations/*.pyc
+*/migrations/*.pyo
+*/migrations/*.log
+
+# Environment variables
+.env
+.env.*
+
+# Local settings
+local_settings.py
+settings_local.py
+
+# Virtualenv
+venv/
+.venv/
+ENV/
+env/
+*.egg-info/
+
+# pipenv/poetry
+Pipfile.lock
+poetry.lock
+
+# IDEs and editors
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# macOS/Linux
+.DS_Store
+.AppleDouble
+.LSOverride
+.Trashes
+*.swp
+*~
+
+# VSCode specific
+.history/
+
+# Pytest and test-related
+htmlcov/
+.coverage
+.tox/
+pytest_cache/
+
+# Static & Media
+staticfiles/
+media/
+static/
+
+# Coverage reports
+coverage.xml
+*.cover
+*.py,cover
+
+# Build artifacts
+build/
+dist/
+*.egg
+*.whl
+
+# Swagger generated files (if any)
+*.swagger.json
+*.swagger.yaml
+
+# Docker (if using)
+*.pid
+*.tar
+docker-compose.override.yml
