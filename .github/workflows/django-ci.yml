@@ -46,4 +46,5 @@ jobs:
       - name: 🔄 Run Migrations
         run: |
           cd pmt_backend
+          python manage.py makemigrations
           python manage.py migrate
