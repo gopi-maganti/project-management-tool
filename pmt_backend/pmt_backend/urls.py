@@ -20,20 +20,23 @@ schema_view = get_schema_view(
 )
 
 urlpatterns = [
+    # Admin site
     path('admin/', admin.site.urls),
 
-    # Token Authentication
+    # Built-in Token Auth
     path('api/token-auth/', obtain_auth_token),
+
+    # Custom API endpoints (your modular viewsets)
     path('api/', include('api.urls')),
 
     # dj-rest-auth endpoints
     path('auth/', include('dj_rest_auth.urls')),
     path('auth/registration/', include('dj_rest_auth.registration.urls')),
 
-    # Social login via Google/Facebook
+    # Social login (for allauth callbacks)
     path('auth/social/', include('allauth.socialaccount.urls')),
 
-    # Swagger / ReDoc
+    # Swagger/OpenAPI documentation
     re_path(r'^swagger(?P<format>\.json|\.yaml)$',
             schema_view.without_ui(cache_timeout=0), name='schema-json'),
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
