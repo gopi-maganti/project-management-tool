@@ -38,4 +38,3 @@ PRIORITY_CHOICES = (
     ("high", "High"),
     ("critical", "Critical"),
 )
-

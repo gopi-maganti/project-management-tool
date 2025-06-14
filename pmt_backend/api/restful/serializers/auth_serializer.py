@@ -1,8 +1,7 @@
-from rest_framework import serializers
-from rest_framework.authtoken.models import Token
-
 from api.constants import LOGIN_TYPE_CHOICES
 from api.models import UserData
+from rest_framework import serializers
+from rest_framework.authtoken.models import Token
 
 
 class LoginTypeSerializer(serializers.Serializer):
