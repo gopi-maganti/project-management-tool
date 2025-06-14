@@ -1,14 +1,14 @@
-from django.db import models
-from django.utils import timezone
-
 from django.contrib.auth.models import AbstractUser, Group, Permission
 from django.core.validators import RegexValidator
+from django.db import models
+from django.utils import timezone
 
 
 class UserData(AbstractUser):
     """
     Extending the customer User Model using the Django"s inbuilt AbstractUser Model.
     """
+
     id = models.AutoField(primary_key=True, editable=False)
     first_name = models.CharField(max_length=150, help_text="First Name of the user")
     last_name = models.CharField(max_length=150, help_text="Last Name of the user")
@@ -18,7 +18,7 @@ class UserData(AbstractUser):
         validators=[
             RegexValidator(
                 regex=r"^\+1 \(\d{3}\) \d{3}-\d{4}$",
-                message="Phone number must be in the format: +1 (XXX) XXX-XXXX"
+                message="Phone number must be in the format: +1 (XXX) XXX-XXXX",
             )
         ],
     )
@@ -29,14 +29,22 @@ class UserData(AbstractUser):
         validators=[
             RegexValidator(
                 regex=r"^[\w\.-]+@[\w\.-]+\.\w+$",
-                message="Enter a valid email address (e.g., xyz@zyx.com)"
+                message="Enter a valid email address (e.g., xyz@zyx.com)",
             )
         ],
     )
-    is_admin = models.BooleanField(default=False, help_text="Marks whether the user has admin privileges.")
-    is_active = models.BooleanField(default=True, help_text="Designates whether this user account is active.")
-    created_at = models.DateTimeField(default=timezone.now, editable=False, help_text="User creation timestamp.")
-    modified_at = models.DateTimeField(auto_now=True, help_text="Timestamp of the last modification.")
+    is_admin = models.BooleanField(
+        default=False, help_text="Marks whether the user has admin privileges."
+    )
+    is_active = models.BooleanField(
+        default=True, help_text="Designates whether this user account is active."
+    )
+    created_at = models.DateTimeField(
+        default=timezone.now, editable=False, help_text="User creation timestamp."
+    )
+    modified_at = models.DateTimeField(
+        auto_now=True, help_text="Timestamp of the last modification."
+    )
     created_by = models.ForeignKey(
         "self",
         on_delete=models.SET_NULL,

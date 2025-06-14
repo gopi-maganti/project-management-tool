@@ -1,2 +1,2 @@
-from .auth_serializer import UserLoginSerializer
+from .auth_serializer import LoginTypeSerializer
 from .user_serializer import UserRegisterSerializer

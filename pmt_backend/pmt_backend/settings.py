@@ -9,6 +9,7 @@ https://docs.djangoproject.com/en/5.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
+
 import os
 from pathlib import Path
 
@@ -43,20 +44,17 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django.contrib.sites",  # required for allauth
-
     # Third-party apps
     "rest_framework",
     "rest_framework.authtoken",
     "drf_yasg",
     "dj_rest_auth",
     "dj_rest_auth.registration",
-
-    'allauth',
-    'allauth.account',
-    'allauth.socialaccount',
-    'allauth.socialaccount.providers.google',
-
-    'api',  # your app
+    "allauth",
+    "allauth.account",
+    "allauth.socialaccount",
+    "allauth.socialaccount.providers.google",
+    "api",  # your app
 ]
 
 MIDDLEWARE = [
@@ -91,22 +89,24 @@ WSGI_APPLICATION = "pmt_backend.wsgi.application"
 
 # Database configuration
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('DB_NAME', 'project_management_tool'),
-        'USER': os.getenv('DB_USER', 'postgres'),
-        'PASSWORD': os.getenv('DB_PASSWORD', 'Admin123'),
-        'HOST': os.getenv('DB_HOST', 'localhost'),
-        'PORT': os.getenv('DB_PORT', '5432'),
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": os.getenv("DB_NAME", "project_management_tool"),
+        "USER": os.getenv("DB_USER", "postgres"),
+        "PASSWORD": os.getenv("DB_PASSWORD", "Admin123"),
+        "HOST": os.getenv("DB_HOST", "localhost"),
+        "PORT": os.getenv("DB_PORT", "5432"),
     }
 }
 
 # Custom user model
-AUTH_USER_MODEL = 'api.UserData'
+AUTH_USER_MODEL = "api.UserData"
 
 # Password validators
 AUTH_PASSWORD_VALIDATORS = [
-    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
+    {
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"
+    },
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
     {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
@@ -114,7 +114,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # Register custom serializer for user registration
 REST_AUTH_REGISTER_SERIALIZERS = {
-    'REGISTER_SERIALIZER': 'api.serializers.user_register_serializer.UserRegisterSerializer',
+    "REGISTER_SERIALIZER": "api.serializers.user_register_serializer.UserRegisterSerializer",
 }
 
 
@@ -136,13 +136,13 @@ SITE_ID = 1
 
 # Django REST Framework settings
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.TokenAuthentication',
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.TokenAuthentication",
     ],
 }
 
 # dj-rest-auth + allauth settings (optional: tweak for your use)
-ACCOUNT_AUTHENTICATION_METHOD = 'username'
+ACCOUNT_AUTHENTICATION_METHOD = "username"
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_USERNAME_REQUIRED = True
-ACCOUNT_USER_MODEL_USERNAME_FIELD = 'username'
+ACCOUNT_USER_MODEL_USERNAME_FIELD = "username"
