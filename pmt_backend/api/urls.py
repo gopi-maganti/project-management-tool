@@ -1,7 +1,8 @@
-from api.restful.viewsets.auth_viewset import AuthViewSet, FacebookLogin, GoogleLogin
-from api.restful.viewsets.user_viewset import UserViewSet
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
+
+from api.restful.viewsets.auth_viewset import AuthViewSet, FacebookLogin, GoogleLogin
+from api.restful.viewsets.user_viewset import UserViewSet
 
 router = DefaultRouter()
 router.register(r"auth", AuthViewSet, basename="auth")
