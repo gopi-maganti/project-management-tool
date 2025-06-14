@@ -8,7 +8,8 @@ from rest_framework import status, viewsets
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.serializers import CharField, ChoiceField, Serializer
+from rest_framework.serializers import CharField, Serializer, ChoiceField
+from api.constants import LOGIN_TYPE_CHOICES
 
 
 class UsernameLoginSerializer(Serializer):
@@ -21,14 +22,7 @@ class TokenLoginSerializer(Serializer):
 
 
 class LoginChoiceSerializer(Serializer):
-    login_type = ChoiceField(
-        choices=[
-            ("username", "Username & Password"),
-            ("token", "Token-based Login"),
-            ("google", "Google SSO"),
-            ("facebook", "Facebook SSO"),
-        ]
-    )
+    login_type = ChoiceField(choices=LOGIN_TYPE_CHOICES)
 
 
 class AuthViewSet(viewsets.ViewSet):
