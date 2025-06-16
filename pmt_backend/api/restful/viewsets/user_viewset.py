@@ -1,10 +1,82 @@
-from rest_framework import permissions, viewsets
+from rest_framework import viewsets, status
+from rest_framework.response import Response
+from rest_framework.permissions import AllowAny
+from rest_framework.decorators import action
+from django.contrib.auth import authenticate, login
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
+from typing import cast
 
-from api.models import UserData
-from api.restful.serializers.user_serializer import UserRegisterSerializer
+from api.restful.serializers.user_serializer import UserRegisterSerializer, UserLoginSerializer
+from rest_framework_simplejwt.tokens import RefreshToken
 
 
-class UserViewSet(viewsets.ModelViewSet):
-    queryset = UserData.objects.all()
-    serializer_class = UserRegisterSerializer
-    permission_classes = [permissions.IsAuthenticated]
+class UserViewSet(viewsets.ViewSet):
+    """
+    ViewSet for user registration functionality.
+    """
+    permission_classes = [AllowAny]
+
+    @swagger_auto_schema(
+        request_body=UserRegisterSerializer,
+        responses={201: UserRegisterSerializer, 400: "Bad Request"},
+        operation_description="Register a new user."
+    )
+    def create(self, request):
+        serializer = UserRegisterSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.save()
+            return Response(UserRegisterSerializer(user).data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class UserLoginViewSet(viewsets.ViewSet):
+    """
+    Action to handle user login.
+    Supports login via username/password or token.
+    """
+    @swagger_auto_schema(
+        request_body=UserLoginSerializer,
+        responses={
+            200: openapi.Response(
+                description="Login successful",
+                examples={
+                    "application/json": {
+                        "refresh": "eyJ0eXAiOiJKV1QiLCJh...",
+                        "access": "eyJhbGciOiJIUzI1NiIsIn...",
+                        "user": {
+                            "id": 1,
+                            "username": "gopi",
+                            "email": "gopi@example.com",
+                            "first_name": "Gopi",
+                            "last_name": "Kumar",
+                            "phone_number": "+1 (123) 456-7890",
+                            "is_admin": True
+                        }
+                    }
+                }
+            ),
+            400: "Bad Request - Invalid credentials or input",
+        },
+        operation_description="User login with username/password. Returns JWT tokens and user info."
+    )
+    @action(detail=False, methods=['post'], url_path='login')
+    def login_user(self, request):
+        serializer = UserLoginSerializer(data=request.data)
+        if serializer.is_valid():
+            validated_data = cast(dict, serializer.validated_data)
+            user = authenticate(
+                username=validated_data.get('username'),
+                password=validated_data.get('password')
+            )
+            if user:
+                login(request, user)
+                refresh = RefreshToken.for_user(user)
+                return Response({
+                    'refresh': str(refresh),
+                    'access': str(refresh.access_token),
+                    'user': UserRegisterSerializer(user).data
+                }, status=status.HTTP_200_OK)
+            return Response({"detail": "Invalid credentials"}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
