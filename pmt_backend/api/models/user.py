@@ -10,6 +10,17 @@ class UserData(AbstractUser):
     """
 
     id = models.AutoField(primary_key=True, editable=False)
+    username = models.CharField(
+        max_length=150,
+        unique=True,
+        help_text="Unique username for the user",
+        validators=[
+            RegexValidator(
+                regex=r"^[a-zA-Z0-9_.-]+$",
+                message="Username must contain only letters, numbers, underscores, or hyphens.",
+            )
+        ],
+    )
     first_name = models.CharField(max_length=150, help_text="First Name of the user")
     last_name = models.CharField(max_length=150, help_text="Last Name of the user")
     phone_number = models.CharField(
