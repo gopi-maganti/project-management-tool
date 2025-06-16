@@ -1,8 +1,8 @@
-name: Django Tests
+name: Django Test Workflow
 
 on:
   workflow_run:
-    workflows: ["Django CI"]
+    workflows: ["Django CI Wrokflow"]
     types:
       - completed
 
