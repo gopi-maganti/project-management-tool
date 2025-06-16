@@ -121,6 +121,28 @@ class AuthViewSet(viewsets.ViewSet):
             return Response(
                 {"detail": "Invalid token"}, status=status.HTTP_400_BAD_REQUEST
             )
+    
+    @swagger_auto_schema(
+        method="get",
+        responses={200: openapi.Response("User profile retrieved")},
+        operation_description="Retrieve user profile",
+    )
+    @action(detail=False, methods=["get"], url_path="profile")
+    def user_profile(self, request):
+        user = request.user
+        if not user.is_authenticated:
+            return Response(
+                {"detail": "Authentication credentials were not provided."},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+        profile_data = {
+            "id": user.id,
+            "username": user.username,
+            "email": user.email,
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+        }
+        return Response(profile_data)
 
 
 class GoogleLogin(SocialLoginView):
