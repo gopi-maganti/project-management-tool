@@ -6,7 +6,7 @@ from django.utils import timezone
 
 class UserData(AbstractUser):
     """
-    Extending the customer User Model using the Django"s inbuilt AbstractUser Model.
+    This model represents a user in the system with custom fields.
     """
 
     id = models.AutoField(primary_key=True, editable=False)

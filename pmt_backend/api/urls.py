@@ -1,11 +1,10 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
-from api.restful.viewsets.auth_viewset import AuthViewSet, FacebookLogin, GoogleLogin
-from api.restful.viewsets.user_viewset import UserViewSet
+from api.restful.viewsets.user_viewset import UserViewSet, UserLoginViewSet
 
 router = DefaultRouter()
-router.register(r"auth", AuthViewSet, basename="auth")
+router.register(r"auth", UserLoginViewSet)
 router.register(r"users", UserViewSet)
 
 urlpatterns = [
