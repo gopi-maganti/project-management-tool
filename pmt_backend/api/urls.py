@@ -1,10 +1,20 @@
 from django.urls import path
-from api.restful.viewsets.user_viewset import UserViewSet, GoogleLoginViewSet
+from api.restful.viewsets.user_viewset import GoogleLoginViewSet, UserViewSet
 
 urlpatterns = [
-    path('auth/register/', UserViewSet.as_view({'post': 'create'}), name='user-register'),
-    path('auth/login/', UserViewSet.as_view({'post': 'login_user'}), name='user-login'),
-    path('auth/token/', UserViewSet.as_view({'post': 'token_login'}), name='token-login'),
-    path('auth/userdata/', UserViewSet.as_view({'get': 'retrieve'}), name='user-data'),
-    path('auth/google/', GoogleLoginViewSet.as_view(), name='google-login'),
+    path(
+        "user/register/", UserViewSet.as_view({"post": "create"}), name="user-register"
+    ),
+    path("user/login/", UserViewSet.as_view({"post": "login_jwt"}), name="user-login"),
+    path(
+        "user/token/", UserViewSet.as_view({"post": "login_token"}), name="token-login"
+    ),
+    path("user/logout/", UserViewSet.as_view({"post": "logout"}), name="user-logout"),
+    path("user/list/", UserViewSet.as_view({"get": "list_users"}), name="user-list"),
+    path(
+        "user/profile/",
+        UserViewSet.as_view({"get": "list_current_user"}),
+        name="user-data",
+    ),
+    path("user/google/", GoogleLoginViewSet.as_view(), name="google-login"),
 ]

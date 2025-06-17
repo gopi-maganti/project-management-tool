@@ -1,1 +1,1 @@
-from .user_viewset import UserViewSet, UserLoginViewSet, GoogleLoginViewSet
+from .user_viewset import GoogleLoginViewSet, UserViewSet

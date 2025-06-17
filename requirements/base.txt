@@ -34,11 +34,13 @@ pyflakes
 Pygments
 PyJWT
 python-dotenv
+python-json-logger
 pytz
 PyYAML
 requests
 requests-oauthlib
 sqlparse
+structlog
 tzdata
 uritemplate
 urllib3
