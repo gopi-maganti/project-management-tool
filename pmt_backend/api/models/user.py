@@ -21,6 +21,17 @@ class UserData(AbstractUser):
             )
         ],
     )
+    email = models.CharField(
+        max_length=254,
+        help_text="Email Address of the user",
+        unique=True,
+        validators=[
+            RegexValidator(
+                regex=r"^[\w\.-]+@gmail\.com$",
+                message="Enter a valid email address (e.g., xyz@gmail.com)",
+            )
+        ],
+    )
     first_name = models.CharField(max_length=150, help_text="First Name of the user")
     last_name = models.CharField(max_length=150, help_text="Last Name of the user")
     phone_number = models.CharField(
@@ -30,17 +41,6 @@ class UserData(AbstractUser):
             RegexValidator(
                 regex=r"^\+1 \(\d{3}\) \d{3}-\d{4}$",
                 message="Phone number must be in the format: +1 (XXX) XXX-XXXX",
-            )
-        ],
-    )
-    email = models.CharField(
-        max_length=254,
-        help_text="Email Address of the user",
-        unique=True,
-        validators=[
-            RegexValidator(
-                regex=r"^[\w\.-]+@[\w\.-]+\.\w+$",
-                message="Enter a valid email address (e.g., xyz@zyx.com)",
             )
         ],
     )
