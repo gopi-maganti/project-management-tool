@@ -56,12 +56,6 @@ jobs:
           pytest --cov=api --cov-config=.coveragerc
           coverage report --fail-under=95  # ⛔ Fails if coverage < 95%
           coverage html  # optional: generate HTML report for debugging
-
-      - name: 📤 Upload coverage report
-        uses: actions/upload-artifact@v3
-        with:
-          name: coverage-html
-          path: pmt_backend/htmlcov
       
       - name: 🚀 Start Development Server
         run: |
