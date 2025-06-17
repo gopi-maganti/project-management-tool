@@ -3,12 +3,12 @@ Constants required for the PMT Backend API
 """
 
 # List of choices for the `login_type` field in the `LoginTypeSerializer`
-LOGIN_TYPE_CHOICES = (
-    ("username_password", "Username & Password"),
-    ("token", "Token"),
-    ("google", "Google SSO"),
-    ("facebook", "Facebook SSO"),
-)
+# LOGIN_TYPE_CHOICES = (
+#     ("username_password", "Username & Password"),
+#     ("token", "Token"),
+#     ("google", "Google SSO"),
+#     ("facebook", "Facebook SSO"),
+# )
 
 # List of choices for the `role` field in the `ProjectMember` model
 ROLE_CHOICES = (
