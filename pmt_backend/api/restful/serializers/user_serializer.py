@@ -1,14 +1,19 @@
+from typing import Any, Dict
 import structlog
 from rest_framework import serializers
-
 from api.models import UserData
 
 logger = structlog.get_logger().bind(module='user_serializer')
 
 class UserRegisterSerializer(serializers.ModelSerializer):
     """
-    Serializer for user registration, including fields for username, email, first name, last name,
-    phone number, password, and admin status.
+    Serializer for user registration.
+
+    Handles creation of new users with required fields such as username, email,
+    first name, last name, phone number, password, and admin status.
+    
+    Raises:
+        ValidationError: If user creation fails internally.
     """
 
     class Meta:
@@ -29,7 +34,19 @@ class UserRegisterSerializer(serializers.ModelSerializer):
             "is_admin": {"required": False, "default": False},
         }
 
-    def create(self, validated_data):
+    def create(self, validated_data: Dict[str, Any]) -> UserData:
+        """
+        Creates and returns a new User instance.
+
+        Args:
+            validated_data (dict): Validated data for creating the user.
+
+        Returns:
+            UserData: The created user instance.
+
+        Raises:
+            ValidationError: If an error occurs during user creation.
+        """
         logger.info("Creating user", validated_data={k: v for k, v in validated_data.items() if k != "password"})
         try:
             user = UserData.objects.create_user(**validated_data)
@@ -42,14 +59,30 @@ class UserRegisterSerializer(serializers.ModelSerializer):
 
 class UserLoginSerializer(serializers.Serializer):
     """
-    Serializer for handling user login with different methods.
-    Supports username/password, token, and Google SSO.
+    Serializer for handling user login.
+
+    Supports username/password-based authentication and validates user credentials.
+    
+    Raises:
+        ValidationError: If credentials are missing or incorrect.
     """
 
     username = serializers.CharField()
     password = serializers.CharField(style={"input_type": "password"})
 
-    def validate(self, attrs):
+    def validate(self, attrs: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Validates the provided username and password.
+
+        Args:
+            attrs (dict): Dictionary with 'username' and 'password'.
+
+        Returns:
+            dict: Validated data with user instance.
+
+        Raises:
+            ValidationError: If user does not exist or password is incorrect.
+        """
         username = attrs.get("username")
         password = attrs.get("password")
 
@@ -66,7 +99,9 @@ class UserLoginSerializer(serializers.Serializer):
 
 class UserSerializer(serializers.ModelSerializer):
     """
-    Serializer for user data, including fields for username, email, first name, last name,
+    Serializer for exposing user data.
+
+    Returns detailed information such as ID, username, email, first and last name,
     phone number, admin status, and timestamps.
     """
 

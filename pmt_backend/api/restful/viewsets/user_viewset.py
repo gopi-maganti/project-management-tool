@@ -1,5 +1,5 @@
 from typing import cast
-import structlog
+from pmt_backend.custom_logger import get_logger, log_exception
 
 from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
 from dj_rest_auth.registration.views import SocialLoginView
@@ -20,17 +20,23 @@ from api.restful.serializers.user_serializer import (
     UserSerializer,
 )
 
-logger = structlog.get_logger().bind(module="user_viewset")
+logger = get_logger(__name__).bind(module="user_viewset")
 
 MAX_LOGIN_ATTEMPTS = 3
 
 class UserViewSet(viewsets.ViewSet):
     """
-    ViewSet to handle registration, login (token + JWT), and user listing.
+    A Django ViewSet that handles user registration, login (Token and JWT), logout, and user retrieval.
     """
     permission_classes = [IsAuthenticated]
 
     def get_permissions(self):
+        """
+        Return the appropriate permissions depending on the action being performed.
+
+        Returns:
+            list: List of permission instances.
+        """
         if self.action in ["create", "login_token", "login_jwt"]:
             return [AllowAny()]
         return [IsAuthenticated()]
@@ -45,6 +51,18 @@ class UserViewSet(viewsets.ViewSet):
         operation_description="Register a new user",
     )
     def create(self, request):
+        """
+        Registers a new user.
+
+        Args:
+            request (HttpRequest): The HTTP request object containing user data.
+
+        Returns:
+            Response: HTTP response with status and data.
+
+        Raises:
+            Exception: If user creation or token generation fails.
+        """
         logger.info("Registering new user", data={k: v for k, v in request.data.items() if k != "password"})
         serializer = UserRegisterSerializer(data=request.data)
         if serializer.is_valid():
@@ -61,12 +79,12 @@ class UserViewSet(viewsets.ViewSet):
                     status=status.HTTP_201_CREATED,
                 )
             except Exception as e:
-                logger.error("User creation failed", error=str(e))
+                log_exception("User creation failed", e, module_name=__name__)
                 return Response(
                     {"error": "Something went wrong"},
                     status=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 )
-        logger.warning("Invalid user registration data", errors=serializer.errors)
+        logger.warning("Invalid user registration data", errors={k: str(v) for k, v in serializer.errors.items()})
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=["post"], url_path="login-token")
@@ -76,6 +94,18 @@ class UserViewSet(viewsets.ViewSet):
         operation_description="Login using username and password with DRF Token",
     )
     def login_token(self, request):
+        """
+        Authenticates user using Token-based authentication.
+
+        Args:
+            request (HttpRequest): Contains username and password.
+
+        Returns:
+            Response: Token and user info or error message.
+
+        Raises:
+            AuthenticationFailed: If credentials are invalid.
+        """
         session = request.session
         attempts = session.get("login_attempts_token", 0)
         logger.info("Login token attempt", attempts=attempts, username=request.data.get("username"))
@@ -133,6 +163,18 @@ class UserViewSet(viewsets.ViewSet):
         operation_description="Login with JWT (username & password)",
     )
     def login_jwt(self, request):
+        """
+        Authenticates user and returns JWT tokens.
+
+        Args:
+            request (HttpRequest): Contains username and password.
+
+        Returns:
+            Response: Access and refresh tokens or error message.
+
+        Raises:
+            AuthenticationFailed: If credentials are invalid.
+        """
         session = request.session
         attempts = session.get("login_attempts_jwt", 0)
         logger.info("Login JWT attempt", attempts=attempts, username=request.data.get("username"))
@@ -170,7 +212,7 @@ class UserViewSet(viewsets.ViewSet):
             return Response(
                 {"detail": "Invalid credentials"}, status=status.HTTP_400_BAD_REQUEST
             )
-        logger.warning("JWT login validation failed", errors=serializer.errors)
+        logger.warning("JWT login validation failed", errors={k: str(v) for k, v in serializer.errors.items()})
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=["post"], url_path="logout", permission_classes=[IsAuthenticated])
@@ -184,6 +226,18 @@ class UserViewSet(viewsets.ViewSet):
         operation_description="Logout by blacklisting the refresh token"
     )
     def logout(self, request):
+        """
+        Logs out the user by blacklisting their refresh token.
+
+        Args:
+            request (HttpRequest): Contains the refresh token.
+
+        Returns:
+            Response: Success or error message.
+
+        Raises:
+            Exception: If token is invalid or missing.
+        """
         from rest_framework_simplejwt.tokens import RefreshToken
         try:
             refresh_token = request.data["refresh"]
@@ -192,7 +246,7 @@ class UserViewSet(viewsets.ViewSet):
             logger.info("User logged out", user_id=request.user.id)
             return Response({"message": "Logged out successfully"}, status=status.HTTP_200_OK)
         except Exception as e:
-            logger.error("Logout failed", error=str(e))
+            log_exception("Logout failed", e, module_name=__name__)
             return Response({"error": "Invalid or missing refresh token"}, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=["get"], url_path="list")
@@ -201,13 +255,25 @@ class UserViewSet(viewsets.ViewSet):
         operation_description="List all users (requires authentication)",
     )
     def list_users(self, request):
+        """
+        Retrieves a list of all registered users.
+
+        Args:
+            request (HttpRequest): Authenticated request.
+
+        Returns:
+            Response: List of user data.
+
+        Raises:
+            Exception: If query fails.
+        """
         try:
             users = UserData.objects.all()
             serializer = UserSerializer(users, many=True)
             logger.info("User list fetched", count=len(users))
             return Response(serializer.data, status=status.HTTP_200_OK)
         except Exception as e:
-            logger.error("Error fetching user list", error=str(e))
+            log_exception("Error fetching user list", e, module_name=__name__)
             return Response(
                 {"error": "Failed to retrieve user list"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
@@ -221,6 +287,15 @@ class UserViewSet(viewsets.ViewSet):
         operation_description="Retrieve current user profile (requires authentication)",
     )
     def list_current_user(self, request):
+        """
+        Returns the current authenticated user's profile.
+
+        Args:
+            request (HttpRequest): Authenticated request.
+
+        Returns:
+            Response: Serialized user profile.
+        """
         user = request.user
         logger.info("Fetching current user profile", user_id=user.id)
         serializer = UserRegisterSerializer(user)
@@ -228,4 +303,7 @@ class UserViewSet(viewsets.ViewSet):
 
 
 class GoogleLoginViewSet(SocialLoginView):
+    """
+    ViewSet for handling Google OAuth2 login.
+    """
     adapter_class = GoogleOAuth2Adapter
