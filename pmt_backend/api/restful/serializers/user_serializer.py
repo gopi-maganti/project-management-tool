@@ -1,7 +1,9 @@
+import structlog
 from rest_framework import serializers
 
 from api.models import UserData
 
+logger = structlog.get_logger().bind(module='user_serializer')
 
 class UserRegisterSerializer(serializers.ModelSerializer):
     """
@@ -28,8 +30,14 @@ class UserRegisterSerializer(serializers.ModelSerializer):
         }
 
     def create(self, validated_data):
-        user = UserData.objects.create_user(**validated_data)
-        return user
+        logger.info("Creating user", validated_data={k: v for k, v in validated_data.items() if k != "password"})
+        try:
+            user = UserData.objects.create_user(**validated_data)
+            logger.info("User created successfully", user_id=user.id)
+            return user
+        except Exception as e:
+            logger.error("Error creating user", error=str(e))
+            raise serializers.ValidationError("User creation failed. Please check the data provided.")
 
 
 class UserLoginSerializer(serializers.Serializer):

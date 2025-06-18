@@ -19,8 +19,13 @@ schema_view = get_schema_view(
 urlpatterns = [
     # Admin site
     path("admin/", admin.site.urls),
+
+    # All auth URLs for user management
+    path("accounts/", include("allauth.urls")),
+
     # Your API endpoints (login/register/viewsets)
     path("api/", include("api.urls")),
+    
     # Swagger/OpenAPI documentation
     re_path(
         r"^swagger(?P<format>\.json|\.yaml)$",

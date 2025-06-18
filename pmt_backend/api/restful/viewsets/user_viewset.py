@@ -1,4 +1,5 @@
 from typing import cast
+import structlog
 
 from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
 from dj_rest_auth.registration.views import SocialLoginView
@@ -19,19 +20,20 @@ from api.restful.serializers.user_serializer import (
     UserSerializer,
 )
 
+logger = structlog.get_logger().bind(module="user_viewset")
+
+MAX_LOGIN_ATTEMPTS = 3
 
 class UserViewSet(viewsets.ViewSet):
     """
     ViewSet to handle registration, login (token + JWT), and user listing.
     """
-
     permission_classes = [IsAuthenticated]
 
     def get_permissions(self):
         if self.action in ["create", "login_token", "login_jwt"]:
             return [AllowAny()]
         return [IsAuthenticated()]
-
 
     @action(detail=False, methods=["post"], url_path="register")
     @swagger_auto_schema(
@@ -43,20 +45,29 @@ class UserViewSet(viewsets.ViewSet):
         operation_description="Register a new user",
     )
     def create(self, request):
+        logger.info("Registering new user", data={k: v for k, v in request.data.items() if k != "password"})
         serializer = UserRegisterSerializer(data=request.data)
         if serializer.is_valid():
-            user = serializer.save()
-            token, _ = Token.objects.get_or_create(user=user)
-            return Response(
-                {
-                    "message": "User registered successfully",
-                    "token": token.key,
-                    "user": UserRegisterSerializer(user).data,
-                },
-                status=status.HTTP_201_CREATED,
-            )
+            try:
+                user = serializer.save()
+                token, _ = Token.objects.get_or_create(user=user)
+                logger.info("User registered successfully", user_id=user.id)
+                return Response(
+                    {
+                        "message": "User registered successfully",
+                        "token": token.key,
+                        "user": UserRegisterSerializer(user).data,
+                    },
+                    status=status.HTTP_201_CREATED,
+                )
+            except Exception as e:
+                logger.error("User creation failed", error=str(e))
+                return Response(
+                    {"error": "Something went wrong"},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                )
+        logger.warning("Invalid user registration data", errors=serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
     @action(detail=False, methods=["post"], url_path="login-token")
     @swagger_auto_schema(
@@ -65,12 +76,25 @@ class UserViewSet(viewsets.ViewSet):
         operation_description="Login using username and password with DRF Token",
     )
     def login_token(self, request):
+        session = request.session
+        attempts = session.get("login_attempts_token", 0)
+        logger.info("Login token attempt", attempts=attempts, username=request.data.get("username"))
+
+        if attempts >= MAX_LOGIN_ATTEMPTS:
+            logger.warning("Max login attempts reached (token)", ip=request.META.get("REMOTE_ADDR"))
+            return Response(
+                {"error": "Maximum login attempts exceeded."},
+                status=status.HTTP_429_TOO_MANY_REQUESTS,
+            )
+
         username = request.data.get("username")
         password = request.data.get("password")
         user = authenticate(username=username, password=password)
 
         if user:
             token, _ = Token.objects.get_or_create(user=user)
+            session["login_attempts_token"] = 0
+            logger.info("Token login successful", user_id=user.pk)
             return Response(
                 {
                     "token": token.key,
@@ -79,10 +103,12 @@ class UserViewSet(viewsets.ViewSet):
                 },
                 status=status.HTTP_200_OK,
             )
+
+        session["login_attempts_token"] = attempts + 1
+        logger.warning("Invalid token login credentials", username=username)
         return Response(
             {"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED
         )
-
 
     @action(detail=False, methods=["post"], url_path="login-jwt")
     @swagger_auto_schema(
@@ -107,6 +133,17 @@ class UserViewSet(viewsets.ViewSet):
         operation_description="Login with JWT (username & password)",
     )
     def login_jwt(self, request):
+        session = request.session
+        attempts = session.get("login_attempts_jwt", 0)
+        logger.info("Login JWT attempt", attempts=attempts, username=request.data.get("username"))
+
+        if attempts >= MAX_LOGIN_ATTEMPTS:
+            logger.warning("Max login attempts reached (JWT)", ip=request.META.get("REMOTE_ADDR"))
+            return Response(
+                {"error": "Maximum login attempts exceeded."},
+                status=status.HTTP_429_TOO_MANY_REQUESTS,
+            )
+
         serializer = UserLoginSerializer(data=request.data)
         if serializer.is_valid():
             validated_data = cast(dict, serializer.validated_data)
@@ -117,6 +154,8 @@ class UserViewSet(viewsets.ViewSet):
             if user:
                 login(request, user)
                 refresh = RefreshToken.for_user(user)
+                session["login_attempts_jwt"] = 0
+                logger.info("JWT login successful", user_id=user.pk)
                 return Response(
                     {
                         "refresh": str(refresh),
@@ -125,11 +164,14 @@ class UserViewSet(viewsets.ViewSet):
                     },
                     status=status.HTTP_200_OK,
                 )
+
+            session["login_attempts_jwt"] = attempts + 1
+            logger.warning("Invalid JWT credentials", username=validated_data.get("username"))
             return Response(
                 {"detail": "Invalid credentials"}, status=status.HTTP_400_BAD_REQUEST
             )
+        logger.warning("JWT login validation failed", errors=serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
     @action(detail=False, methods=["post"], url_path="logout", permission_classes=[IsAuthenticated])
     @swagger_auto_schema(
@@ -141,16 +183,17 @@ class UserViewSet(viewsets.ViewSet):
         responses={200: "Token blacklisted successfully"},
         operation_description="Logout by blacklisting the refresh token"
     )
-    def logout_jwt(self, request):
+    def logout(self, request):
         from rest_framework_simplejwt.tokens import RefreshToken
         try:
             refresh_token = request.data["refresh"]
             token = RefreshToken(refresh_token)
             token.blacklist()
+            logger.info("User logged out", user_id=request.user.id)
             return Response({"message": "Logged out successfully"}, status=status.HTTP_200_OK)
-        except Exception:
+        except Exception as e:
+            logger.error("Logout failed", error=str(e))
             return Response({"error": "Invalid or missing refresh token"}, status=status.HTTP_400_BAD_REQUEST)
-
 
     @action(detail=False, methods=["get"], url_path="list")
     @swagger_auto_schema(
@@ -158,9 +201,16 @@ class UserViewSet(viewsets.ViewSet):
         operation_description="List all users (requires authentication)",
     )
     def list_users(self, request):
-        users = UserData.objects.all()
-        serializer = UserSerializer(users, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        try:
+            users = UserData.objects.all()
+            serializer = UserSerializer(users, many=True)
+            logger.info("User list fetched", count=len(users))
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Exception as e:
+            logger.error("Error fetching user list", error=str(e))
+            return Response(
+                {"error": "Failed to retrieve user list"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
     @action(detail=False, methods=["get"], url_path="profile")
     @swagger_auto_schema(
@@ -172,6 +222,7 @@ class UserViewSet(viewsets.ViewSet):
     )
     def list_current_user(self, request):
         user = request.user
+        logger.info("Fetching current user profile", user_id=user.id)
         serializer = UserRegisterSerializer(user)
         return Response(serializer.data, status=status.HTTP_200_OK)
 

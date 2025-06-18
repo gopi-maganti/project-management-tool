@@ -170,7 +170,7 @@ LOGGING = {
     "formatters": {
         "structlog": {
             "()": structlog.stdlib.ProcessorFormatter,
-            "processor": structlog.dev.ConsoleRenderer(),  # Or use JSONRenderer()
+            "processor": structlog.processors.JSONRenderer(),
             "foreign_pre_chain": [
                 structlog.processors.TimeStamper(fmt="iso"),
                 structlog.stdlib.add_log_level,
@@ -192,7 +192,7 @@ LOGGING = {
             "level": "INFO",
             "propagate": True,
         },
-        "project": {  # your custom logger
+        "project": {
             "handlers": ["default"],
             "level": "DEBUG",
             "propagate": False,
