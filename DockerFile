@@ -1,31 +1,28 @@
 # Use official Python image
 FROM python:3.13-slim
 
-# Set Labels
-LABEL name="Gopi Krishna Maganti" email="gopi.maganti1998@gmail.com"
+# Metadata
+LABEL maintainer="Gopi Krishna Maganti <gopi.maganti1998@gmail.com>"
 LABEL description="Dockerfile for Backend of PMT (Project Management Tool) using Django and PostgreSQL"
-
-# Add current files to the container
-ADD . /app
 
 # Set working directory
 WORKDIR /app
 
-# Copy only the requirements first
+# Copy only requirements first for caching
 COPY requirements /app/requirements
 
-# Install dependencies from base.txt
-RUN pip install --upgrade pip \
-    && pip install -r requirements/base.txt
+# Install dependencies
+RUN pip install --upgrade pip && \
+    pip install -r requirements/base.txt
 
-# Optional: install test dependencies too
+# OPTIONAL: install test dependencies (uncomment for dev)
 RUN pip install -r requirements/test.txt
 
-# Copy the full project
-COPY . /app
+# Copy Django project
+COPY . /app/
 
-# Expose port (optional for local)
-EXPOSE 8000
+# Change permissions for entrypoint script
+RUN chmod +x /app/entrypoint.sh
 
-# Default command
-CMD ["sh", "-c", "python manage.py migrate && python manage.py collectstatic --noinput && gunicorn pmt_backend.wsgi:application --bind 0.0.0.0:8000"]
+# Entrypoint
+ENTRYPOINT ["sh", "/app/entrypoint.sh"]

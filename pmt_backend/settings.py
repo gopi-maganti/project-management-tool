@@ -11,9 +11,8 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 import os
-from pathlib import Path
 from datetime import timedelta
-import structlog
+from pathlib import Path
 
 from dotenv import load_dotenv
 
@@ -97,7 +96,7 @@ DATABASES = {
         "NAME": os.getenv("DB_NAME", "project_management_tool"),
         "USER": os.getenv("DB_USER", "postgres"),
         "PASSWORD": os.getenv("DB_PASSWORD", "Admin123"),
-        "HOST": os.getenv("DB_HOST", "localhost"),
+        "HOST": os.getenv("DB_HOST", "db"),
         "PORT": os.getenv("DB_PORT", "5432"),
     }
 }
@@ -164,52 +163,6 @@ ACCOUNT_USERNAME_REQUIRED = True
 ACCOUNT_USER_MODEL_USERNAME_FIELD = "username"
 
 # Add Logging configuration
-LOGGING = {
-    "version": 1,
-    "disable_existing_loggers": False,
-    "formatters": {
-        "structlog": {
-            "()": structlog.stdlib.ProcessorFormatter,
-            "processor": structlog.dev.ConsoleRenderer(),  # Or use JSONRenderer()
-            "foreign_pre_chain": [
-                structlog.processors.TimeStamper(fmt="iso"),
-                structlog.stdlib.add_log_level,
-                structlog.processors.StackInfoRenderer(),
-                structlog.processors.format_exc_info,
-            ],
-        },
-    },
-    "handlers": {
-        "default": {
-            "level": "DEBUG",
-            "class": "logging.StreamHandler",
-            "formatter": "structlog",
-        },
-    },
-    "loggers": {
-        "django": {
-            "handlers": ["default"],
-            "level": "INFO",
-            "propagate": True,
-        },
-        "project": {  # your custom logger
-            "handlers": ["default"],
-            "level": "DEBUG",
-            "propagate": False,
-        },
-    },
-}
+from pmt_backend.custom_logger import configure_structlog_logger
 
-structlog.configure(
-    processors=[
-        structlog.processors.TimeStamper(fmt="iso"),
-        structlog.stdlib.add_log_level,
-        structlog.processors.StackInfoRenderer(),
-        structlog.processors.format_exc_info,
-        structlog.stdlib.ProcessorFormatter.wrap_for_formatter,
-    ],
-    context_class=dict,
-    logger_factory=structlog.stdlib.LoggerFactory(),
-    wrapper_class=structlog.stdlib.BoundLogger,
-    cache_logger_on_first_use=True,
-)
+configure_structlog_logger()

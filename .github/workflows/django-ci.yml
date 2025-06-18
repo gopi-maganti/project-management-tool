@@ -56,8 +56,3 @@ jobs:
           pytest --cov=api --cov-config=.coveragerc
           coverage report --fail-under=95  # ⛔ Fails if coverage < 95%
           coverage html  # optional: generate HTML report for debugging
-      
-      - name: 🚀 Start Development Server
-        run: |
-          cd pmt_backend
-          python manage.py runserver
