@@ -1,4 +1,5 @@
 from django.urls import path
+
 from api.restful.viewsets.user_viewset import GoogleLoginViewSet, UserViewSet
 
 urlpatterns = [

@@ -11,8 +11,8 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 import os
-from pathlib import Path
 from datetime import timedelta
+from pathlib import Path
 
 from dotenv import load_dotenv
 
@@ -96,7 +96,7 @@ DATABASES = {
         "NAME": os.getenv("DB_NAME", "project_management_tool"),
         "USER": os.getenv("DB_USER", "postgres"),
         "PASSWORD": os.getenv("DB_PASSWORD", "Admin123"),
-        "HOST": os.getenv("DB_HOST", "localhost"),
+        "HOST": os.getenv("DB_HOST", "db"),
         "PORT": os.getenv("DB_PORT", "5432"),
     }
 }
@@ -163,6 +163,6 @@ ACCOUNT_USERNAME_REQUIRED = True
 ACCOUNT_USER_MODEL_USERNAME_FIELD = "username"
 
 # Add Logging configuration
-from custom_logger import configure_structlog_logger
+from pmt_backend.custom_logger import configure_structlog_logger
 
 configure_structlog_logger()

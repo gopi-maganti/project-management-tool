@@ -1,8 +1,8 @@
 import logging
-import structlog
 import sys
 import traceback
 
+import structlog
 from structlog.processors import CallsiteParameter
 from structlog.stdlib import BoundLogger
 
@@ -30,7 +30,12 @@ def configure_structlog_logger():
                 CallsiteParameter.PATHNAME,
             }),
             structlog.processors.ExceptionPrettyPrinter(),
-            structlog.processors.JSONRenderer(sort_keys=True),
+            structlog.processors.JSONRenderer(
+                sort_keys=True,
+                indent=4,
+                ensure_ascii=False,
+                separators=(",", ": "),
+            ),
         ],
         wrapper_class=BoundLogger,
         logger_factory=structlog.stdlib.LoggerFactory(),

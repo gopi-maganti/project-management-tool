@@ -11,7 +11,7 @@ class UserRegisterSerializer(serializers.ModelSerializer):
 
     Handles creation of new users with required fields such as username, email,
     first name, last name, phone number, password, and admin status.
-    
+
     Raises:
         ValidationError: If user creation fails internally.
     """
@@ -47,10 +47,8 @@ class UserRegisterSerializer(serializers.ModelSerializer):
         Raises:
             ValidationError: If an error occurs during user creation.
         """
-        logger.info("Creating user", validated_data={k: v for k, v in validated_data.items() if k != "password"})
         try:
             user = UserData.objects.create_user(**validated_data)
-            logger.info("User created successfully", user_id=user.id)
             return user
         except Exception as e:
             logger.error("Error creating user", error=str(e))
@@ -62,7 +60,7 @@ class UserLoginSerializer(serializers.Serializer):
     Serializer for handling user login.
 
     Supports username/password-based authentication and validates user credentials.
-    
+
     Raises:
         ValidationError: If credentials are missing or incorrect.
     """

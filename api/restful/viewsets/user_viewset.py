@@ -1,5 +1,6 @@
 from typing import cast
 from pmt_backend.custom_logger import get_logger, log_exception
+from api.utils import stringify_errors, pretty_print_errors
 
 from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
 from dj_rest_auth.registration.views import SocialLoginView
@@ -84,7 +85,7 @@ class UserViewSet(viewsets.ViewSet):
                     {"error": "Something went wrong"},
                     status=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 )
-        logger.warning("Invalid user registration data", errors={k: str(v) for k, v in serializer.errors.items()})
+        logger.warning("Invalid user registration data:\n" + pretty_print_errors(serializer.errors))
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=["post"], url_path="login-token")
