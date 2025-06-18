@@ -46,13 +46,11 @@ jobs:
 
       - name: 🔄 Run Migrations
         run: |
-          cd pmt_backend
           python manage.py makemigrations
           python manage.py migrate
       
       - name: 🧪 Run Tests
         run: |
-          cd pmt_backend
           pytest --cov=api --cov-config=.coveragerc
           coverage report --fail-under=95  # ⛔ Fails if coverage < 95%
           coverage html  # optional: generate HTML report for debugging
