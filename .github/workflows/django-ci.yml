@@ -44,8 +44,8 @@ jobs:
           pip install -r requirements/base.txt
           pip install -r requirements/test.txt
       
-      - name: 🔧 Configure Environment
-        run: cp .env.test .env
+      - name: 🔧 Configure Environment Variables
+        run: cp ./.env.test .env
 
       - name: 🔄 Run Migrations
         run: |
